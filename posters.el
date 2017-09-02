@@ -42,15 +42,16 @@
   (let* ((file (format "/tmp/%s.jpg" id))
 	 (img (create-image file nil nil))
 	 (size (image-size img t))
+	 (border 80)
 	 (image-width (* (/ (* (car size) 1.0) (cdr size)) 800))
-	 (svg (svg-create (+ image-width 100) 800
+	 (svg (svg-create (+ image-width border) 800
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
-    (svg-rectangle svg 0 0 (+ image-width 100) 800
+    (svg-rectangle svg 0 0 (+ image-width border) 800
 		   :fill "red")
     (svg-embed svg file "image/jpeg" nil
 	       :width image-width
 	       :height 800
-	       :x 100)
+	       :x border)
     (svg-text svg text
 	      :font-size 50
 	      :font-weight "bold"
@@ -59,7 +60,7 @@
 	      :font-family "futura"
 	      :transform "rotate(270 50 50)"
 	      :x -730
-	      :y 15)
+	      :y 8)
     svg))
 
 (defun posters-make (id date)
