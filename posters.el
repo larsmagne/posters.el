@@ -25,9 +25,54 @@
 
 ;;; Code:
 
-(require 'cl)
-(require 'url)
-(require 'dom)
+(require 'imdb)
+
+(defun posters-get-image (id)
+  (let ((image (imdb-get-image-and-country id t))
+	(file (format "/tmp/%s.jpg" id)))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (insert image)
+      (write-region (point-min) (point-max) file))
+    file))
+
+(defun posters-make-svg (id text)
+  (let* ((file (format "/tmp/%s.jpg" id))
+	 (img (create-image file nil nil))
+	 (size (image-size img t))
+	 (svg (svg-create (+ (car size) 50) (cdr size)
+			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (svg-rectangle svg 0 0 (+ (car size) 50) (cdr size)
+		   :fill "red")
+    (svg-embed svg file "image/jpeg" nil
+	       :width (car size)
+	       :height (cdr size)
+	       :x 50)
+    (svg-text svg text
+	      :font-size 30
+	      :font-weight "bold"
+	      :stroke "white"
+	      :fill "white"
+	      :font-family "futura"
+	      :transform "rotate(270 50 50)"
+	      :x (+ (- (car size)) -100)
+	      :y -15)
+    svg))
+
+(defun posters-make (id date)
+  (posters-get-image id)
+  (let ((svg (posters-make-svg id date))
+	(file (format "/tmp/%s-poster.png" id)))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "convert"
+			   nil nil nil "svg:-" file))
+    file))
 
 (provide 'posters)
 
