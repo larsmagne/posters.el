@@ -23,9 +23,27 @@
 
 ;;; Commentary:
 
+;; To test:
+;; (find-file (posters-make "tt0036384" "October 1948"))
+
 ;;; Code:
 
 (require 'imdb)
+
+(defun posters-make (id date)
+  "Create an image based on the poster for ID with a sidebar of DATE.
+ID is the imdb movie ID, and DATE can be any string."
+  (posters-get-image id)
+  (let ((svg (posters-make-svg id date))
+	(file (format "/tmp/%s-poster.png" id)))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "convert"
+			   nil nil nil "svg:-" file))
+    file))
 
 (defun posters-get-image (id)
   (let ((image (imdb-get-image-and-country id t))
@@ -62,19 +80,6 @@
 	      :x -730
 	      :y 8)
     svg))
-
-(defun posters-make (id date)
-  (posters-get-image id)
-  (let ((svg (posters-make-svg id date))
-	(file (format "/tmp/%s-poster.png" id)))
-    (when (file-exists-p file)
-      (delete-file file))
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (svg-print svg)
-      (call-process-region (point-min) (point-max) "convert"
-			   nil nil nil "svg:-" file))
-    file))
 
 (provide 'posters)
 
