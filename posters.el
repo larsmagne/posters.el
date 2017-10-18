@@ -56,7 +56,7 @@ ID is the imdb movie ID, and DATE can be any string."
       (write-region (point-min) (point-max) file))
     file))
 
-(defun posters-make-svg (id text)
+(defun posters-make-svg-century (id text)
   (let* ((file (format "/tmp/%s.jpg" id))
 	 (img (create-image file nil nil))
 	 (size (image-size img t))
@@ -79,6 +79,30 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :transform "rotate(270 50 50)"
 	      :x -680
 	      :y 60)
+    svg))
+
+(defun posters-make-svg (id text)
+  (let* ((file (format "/tmp/%s.jpg" id))
+	 (img (create-image file nil nil))
+	 (size (image-size img t))
+	 (border 150)
+	 (image-height (* (/ (* (cdr size) 1.0) (car size)) 600))
+	 (svg (svg-create 600 (+ image-height border)
+			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (svg-rectangle svg 0 0 600 (+ image-height border)
+		   :fill "black")
+    (svg-embed svg file "image/jpeg" nil
+	       :width 600
+	       :height image-height
+	       :y border)
+    (svg-text svg text
+	      :font-size 80
+	      :font-weight "regular"
+	      :stroke "white"
+	      :fill "white"
+	      :font-family "JRS"
+	      :x 80
+	      :y (- border 60))
     svg))
 
 (provide 'posters)
