@@ -93,16 +93,45 @@ ID is the imdb movie ID, and DATE can be any string."
 		   :fill "black")
     (svg-embed svg file "image/jpeg" nil
 	       :width 600
-	       :height image-height
-	       :y border)
+	       :height image-height)
+    (svg-text svg text
+	      :font-size 80
+	      :font-weight "regular"
+	      :stroke "black"
+	      :stroke-width "4"
+	      :fill "black"
+	      :font-family "JRS"
+	      :text-anchor "left"
+	      :x 80
+	      :y (+ image-height 40))
     (svg-text svg text
 	      :font-size 80
 	      :font-weight "regular"
 	      :stroke "white"
 	      :fill "white"
 	      :font-family "JRS"
+	      :text-anchor "left"
 	      :x 80
-	      :y (- border 60))
+	      :y (+ image-height 40))
+    (svg-text svg "F&#228;r att inta tala om alla dessa kvinnor"
+	      :font-size 60
+	      :font-weight "regular"
+	      :stroke "black"
+	      :stroke-width "4"
+	      :fill "black"
+	      :font-family "JRS"
+	      :text-anchor "middle"
+	      :x 300
+	      :y (+ image-height 90))
+    (svg-text svg "F&#228;r att inta tala om alla dessa kvinnor"
+	      :font-size 60
+	      :font-weight "regular"
+	      :stroke "white"
+	      :fill "white"
+	      :font-family "JRS"
+	      :text-anchor "middle"
+	      :x 300
+	      :y (+ image-height 90))
     svg))
 
 (provide 'posters)
