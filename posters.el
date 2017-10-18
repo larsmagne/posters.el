@@ -77,8 +77,8 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :fill "white"
 	      :font-family "futura"
 	      :transform "rotate(270 50 50)"
-	      :x -730
-	      :y 8)
+	      :x -680
+	      :y 60)
     svg))
 
 (provide 'posters)
