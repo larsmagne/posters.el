@@ -42,7 +42,8 @@ ID is the imdb movie ID, and DATE can be any string."
       (set-buffer-multibyte nil)
       (svg-print svg)
       (call-process-region (point-min) (point-max) "convert"
-			   nil nil nil "svg:-" file))
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
     file))
 
 (defun posters-get-image (id)
@@ -86,7 +87,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (img (create-image file nil nil))
 	 (size (image-size img t))
 	 (border 150)
-	 (image-height (* (/ (* (cdr size) 1.0) (car size)) 600))
+	 (image-height (round (* (/ (* (cdr size) 1.0) (car size)) 600)))
 	 (svg (svg-create 600 (+ image-height border)
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
     (svg-rectangle svg 0 0 600 (+ image-height border)
@@ -94,7 +95,7 @@ ID is the imdb movie ID, and DATE can be any string."
     (svg-embed svg file "image/jpeg" nil
 	       :width 600
 	       :height image-height)
-    (svg-text svg text
+    (svg-text svg "It's#03 Bergman#01 Time#02"
 	      :font-size 80
 	      :font-weight "regular"
 	      :stroke "black"
@@ -102,18 +103,18 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :fill "black"
 	      :font-family "JRS"
 	      :text-anchor "left"
-	      :x 80
+	      :x 85
 	      :y (+ image-height 40))
-    (svg-text svg text
+    (svg-text svg "It's#03 Bergman#01 Time#02"
 	      :font-size 80
 	      :font-weight "regular"
 	      :stroke "white"
 	      :fill "white"
 	      :font-family "JRS"
 	      :text-anchor "left"
-	      :x 80
+	      :x 85
 	      :y (+ image-height 40))
-    (svg-text svg "F&#228;r att inta tala om alla dessa kvinnor"
+    (svg-text svg text
 	      :font-size 60
 	      :font-weight "regular"
 	      :stroke "black"
@@ -123,7 +124,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :text-anchor "middle"
 	      :x 300
 	      :y (+ image-height 90))
-    (svg-text svg "F&#228;r att inta tala om alla dessa kvinnor"
+    (svg-text svg text
 	      :font-size 60
 	      :font-weight "regular"
 	      :stroke "white"
