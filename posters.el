@@ -89,13 +89,22 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (border 150)
 	 (image-height (round (* (/ (* (cdr size) 1.0) (car size)) 600)))
 	 (svg (svg-create 600 (+ image-height border)
-			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
+	 (heading
+	  ;;"It's#03 Bergman#01 Time#02"
+	  "A#03 Bergman#01 Winter#02"
+	  ))
+    (svg-gradient svg 'gradient 'linear
+		  '((0 . "black")
+		    (40 . "white")))
     (svg-rectangle svg 0 0 600 (+ image-height border)
 		   :fill "black")
+    (svg-rectangle svg 0 image-height 600 (+ image-height border)
+		   :gradient 'gradient)
     (svg-embed svg file "image/jpeg" nil
 	       :width 600
 	       :height image-height)
-    (svg-text svg "It's#03 Bergman#01 Time#02"
+    (svg-text svg heading
 	      :font-size 80
 	      :font-weight "regular"
 	      :stroke "black"
@@ -103,16 +112,16 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :fill "black"
 	      :font-family "JRS"
 	      :text-anchor "left"
-	      :x 85
+	      :x 65
 	      :y (+ image-height 40))
-    (svg-text svg "It's#03 Bergman#01 Time#02"
+    (svg-text svg heading
 	      :font-size 80
 	      :font-weight "regular"
 	      :stroke "white"
 	      :fill "white"
 	      :font-family "JRS"
 	      :text-anchor "left"
-	      :x 85
+	      :x 65
 	      :y (+ image-height 40))
     (svg-text svg text
 	      :font-size 60
