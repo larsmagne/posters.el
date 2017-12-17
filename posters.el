@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; To test:
-;; (find-file (posters-make "tt0036384" "October 1948"))
+;; (find-file (posters-make "tt0084787" "The Thing"))
 
 ;;; Code:
 
@@ -41,7 +41,7 @@ ID is the imdb movie ID, and DATE can be any string."
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (svg-print svg)
-      (call-process-region (point-min) (point-max) "convert"
+      (call-process-region (point-min) (point-max) "~/bin/convert"
 			   nil (get-buffer-create "*convert*")
 			   nil "svg:-" file))
     file))
@@ -86,63 +86,102 @@ ID is the imdb movie ID, and DATE can be any string."
   (let* ((file (format "/tmp/%s.jpg" id))
 	 (img (create-image file nil nil))
 	 (size (image-size img t))
-	 (border 150)
-	 (image-height (round (* (/ (* (cdr size) 1.0) (car size)) 600)))
-	 (svg (svg-create 600 (+ image-height border)
+	 (border 300)
+	 (image-height (round (* (/ (* (cdr size) 1.0) (car size)) 1200)))
+	 (svg (svg-create 1240 (+ image-height border 40)
 			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
 	 (heading
 	  ;;"It's#03 Bergman#01 Time#02"
-	  "A#03 Bergman#01 Winter#02"
+	  "A#03 Carpenter#01 Winter#02"
 	  ))
-    (svg-gradient svg 'gradient 'linear
-		  '((0 . "black")
-		    (40 . "white")))
-    (svg-rectangle svg 0 0 600 (+ image-height border)
-		   :fill "black")
-    (svg-rectangle svg 0 image-height 600 (+ image-height border)
-		   :gradient 'gradient)
+    (svg-opacity-gradient
+     svg 'left-gradient 'linear
+     '((0 . "black")
+       (40 . "black")))
+    (svg-rectangle svg 0 0 1240 (+ image-height border 40 4)
+		   :fill "white")	;
+    (svg-rectangle svg 20 (+ image-height 20) 1200 border
+		   :gradient 'left-gradient)
     (svg-embed svg file "image/jpeg" nil
-	       :width 600
+	       :x 20
+	       :y 20
+	       :width 1200
 	       :height image-height)
     (svg-text svg heading
-	      :font-size 80
+	      :font-size 160
 	      :font-weight "regular"
-	      :stroke "black"
-	      :stroke-width "4"
+	      :stroke "red"
+	      :stroke-width "8"
 	      :fill "black"
 	      :font-family "JRS"
 	      :text-anchor "left"
-	      :x 65
-	      :y (+ image-height 40))
+	      :x 180
+	      :y (+ image-height 80 20))
     (svg-text svg heading
-	      :font-size 80
+	      :font-size 160
 	      :font-weight "regular"
-	      :stroke "white"
-	      :fill "white"
+	      :stroke "black"
+	      :fill "black"
 	      :font-family "JRS"
 	      :text-anchor "left"
-	      :x 65
-	      :y (+ image-height 40))
+	      :x 180
+	      :y (+ image-height 80 20))
     (svg-text svg text
-	      :font-size 60
+	      :font-size 120
 	      :font-weight "regular"
 	      :stroke "black"
 	      :stroke-width "4"
 	      :fill "black"
 	      :font-family "JRS"
 	      :text-anchor "middle"
-	      :x 300
-	      :y (+ image-height 90))
+	      :x 620
+	      :y (+ image-height 180 20))
     (svg-text svg text
-	      :font-size 60
+	      :font-size 120
 	      :font-weight "regular"
 	      :stroke "white"
 	      :fill "white"
 	      :font-family "JRS"
 	      :text-anchor "middle"
-	      :x 300
-	      :y (+ image-height 90))
+	      :x 620
+	      :y (+ image-height 180 20))
+    (loop for i from 0 upto 50
+	  do
+	  (svg-rectangle svg (+ i 19) 20 1 (+ image-height border)
+			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
+			 :fill "white")
+	  (svg-rectangle svg (- 1220 i) 20 1 (+ image-height border)
+			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
+			 :fill "white")
+	  (svg-rectangle svg 20 (+ i 19) 1200 1
+			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
+			 :fill "white")
+	  (svg-rectangle svg 20 (- (+ image-height border 20) i) 1200 1
+			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
+			 :fill "white"))
     svg))
+
+(defun svg-opacity-gradient (svg id type stops)
+  "Add a gradient with ID to SVG.
+TYPE is `linear' or `radial'.  STOPS is a list of percentage/color
+pairs."
+  (svg--def
+   svg
+   (apply
+    'dom-node
+    (if (eq type 'linear)
+	'linearGradient
+      'radialGradient)
+    `((id . ,id)
+      (x1 . 0)
+      (x2 . 0)
+      (y1 . 0)
+      (y2 . 1))
+    (mapcar
+     (lambda (stop)
+       (dom-node 'stop `((offset . ,(format "%s%%" (car stop)))
+			 (stop-opacity . ,(cdr stop)))))
+     stops))))
 
 (provide 'posters)
 
