@@ -33,9 +33,22 @@
 (defun posters-make (id date)
   "Create an image based on the poster for ID with a sidebar of DATE.
 ID is the imdb movie ID, and DATE can be any string."
-  (posters-get-image id)
-  (let ((svg (posters-make-svg id date))
-	(file (format "/tmp/%s-poster.png" id)))
+  (let* ((id-file (posters-get-image id))
+	 (svg (posters-make-svg id-file date))
+	 (file (format "/tmp/%s-poster.png" id)))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "~/bin/convert"
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
+    file))
+
+(defun posters-make-from-file (file)
+  (let ((svg (posters-make-svg file))
+	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
     (with-temp-buffer
@@ -57,9 +70,8 @@ ID is the imdb movie ID, and DATE can be any string."
       (write-region (point-min) (point-max) file))
     file))
 
-(defun posters-make-svg-century (id text)
-  (let* ((file (format "/tmp/%s.jpg" id))
-	 (img (create-image file nil nil))
+(defun posters-make-svg-century (file text)
+  (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
 	 (border 80)
 	 (image-width (* (/ (* (car size) 1.0) (cdr size)) 800))
@@ -82,83 +94,48 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :y 60)
     svg))
 
-(defun posters-make-svg (id text)
-  (let* ((file (format "/tmp/%s.jpg" id))
-	 (img (create-image file nil nil))
+(defun posters-make-svg (file text)
+  (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
-	 (border 300)
-	 (image-height (round (* (/ (* (cdr size) 1.0) (car size)) 1200)))
-	 (svg (svg-create 1240 (+ image-height border 40)
+	 (image-height 1200)
+	 (image-width (round (* (/ (* (car size) 1.0)
+				   (cdr size))
+				image-height)))
+	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
-	 (heading
-	  ;;"It's#03 Bergman#01 Time#02"
-	  "A#03 Carpenter#01 Winter#02"
-	  ))
+	 (font-size 200)
+	 (heading "87 Bergman#01 Things#02"))
     (svg-opacity-gradient
      svg 'left-gradient 'linear
      '((0 . "black")
        (40 . "black")))
-    (svg-rectangle svg 0 0 1240 (+ image-height border 40 4)
-		   :fill "white")	;
-    (svg-rectangle svg 20 (+ image-height 20) 1200 border
-		   :gradient 'left-gradient)
+    (svg-rectangle svg 0 0 image-width (+ image-height 4)
+		   :fill "white")
     (svg-embed svg file "image/jpeg" nil
-	       :x 20
-	       :y 20
-	       :width 1200
+	       :width image-width
 	       :height image-height)
+    (loop for i from 1 upto 16 by 4
+	  do (svg-text svg heading
+		       :font-size font-size
+		       :font-weight "regular"
+		       :stroke "black"
+		       :stroke-width (format "%s" i)
+		       :fill "black"
+		       :font-family "JRS"
+		       :transform "rotate(270 50 50)"
+		       :opacity (format "%.2f" (- 1 (/ (* i 1.0) 16)))
+		       :x (+ (- image-height) 150)
+		       :y 180))
     (svg-text svg heading
-	      :font-size 160
-	      :font-weight "regular"
-	      :stroke "red"
-	      :stroke-width "8"
-	      :fill "black"
-	      :font-family "JRS"
-	      :text-anchor "left"
-	      :x 180
-	      :y (+ image-height 80 20))
-    (svg-text svg heading
-	      :font-size 160
-	      :font-weight "regular"
-	      :stroke "black"
-	      :fill "black"
-	      :font-family "JRS"
-	      :text-anchor "left"
-	      :x 180
-	      :y (+ image-height 80 20))
-    (svg-text svg text
-	      :font-size 120
-	      :font-weight "regular"
-	      :stroke "black"
-	      :stroke-width "4"
-	      :fill "black"
-	      :font-family "JRS"
-	      :text-anchor "middle"
-	      :x 620
-	      :y (+ image-height 180 20))
-    (svg-text svg text
-	      :font-size 120
+	      :font-size font-size
 	      :font-weight "regular"
 	      :stroke "white"
+	      :stroke-width "1"
 	      :fill "white"
 	      :font-family "JRS"
-	      :text-anchor "middle"
-	      :x 620
-	      :y (+ image-height 180 20))
-    (loop for i from 0 upto 50
-	  do
-	  (svg-rectangle svg (+ i 19) 20 1 (+ image-height border)
-			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
-			 :fill "white")
-	  (svg-rectangle svg (- 1220 i) 20 1 (+ image-height border)
-			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
-			 :fill "white")
-	  (svg-rectangle svg 20 (+ i 19) 1200 1
-			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
-			 :fill "white")
-	  (svg-rectangle svg 20 (- (+ image-height border 20) i) 1200 1
-			 :opacity (format "%.2f" (- 1 (/ (* i 1.0) 50)))
-			 :fill "white"))
+	      :transform "rotate(270 50 50)"
+	      :x (+ (- image-height) 150)
+	      :y 180)
     svg))
 
 (defun svg-opacity-gradient (svg id type stops)
