@@ -35,7 +35,7 @@
 ID is the imdb movie ID, and DATE can be any string."
   (let* ((id-file (posters-get-image id))
 	 (svg (posters-make-svg id-file date))
-	 (file (format "/tmp/%s-poster.png" id)))
+	 (file (format "/tmp/%s-poster.jpg" id)))
     (when (file-exists-p file)
       (delete-file file))
     (with-temp-buffer
@@ -47,7 +47,7 @@ ID is the imdb movie ID, and DATE can be any string."
     file))
 
 (defun posters-make-from-file (file)
-  (let ((svg (posters-make-svg file))
+  (let ((svg (posters-make-svg file ""))
 	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
@@ -79,7 +79,7 @@ ID is the imdb movie ID, and DATE can be any string."
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
     (svg-rectangle svg 0 0 (+ image-width border) 800
 		   :fill "red")
-    (svg-embed svg file "image/jpeg" nil
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
 	       :height 800
 	       :x border)
@@ -111,7 +111,11 @@ ID is the imdb movie ID, and DATE can be any string."
        (40 . "black")))
     (svg-rectangle svg 0 0 image-width (+ image-height 4)
 		   :fill "white")
-    (svg-embed svg file "image/jpeg" nil
+    (svg-embed svg (expand-file-name file)
+	       (if (string-match "png$" file)
+		   "image/png"
+		 "image/jpeg")
+	       nil
 	       :width image-width
 	       :height image-height)
     (loop for i from 1 upto 16 by 4
