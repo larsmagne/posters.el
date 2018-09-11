@@ -70,76 +70,58 @@ ID is the imdb movie ID, and DATE can be any string."
       (write-region (point-min) (point-max) file))
     file))
 
-(defun posters-make-svg-century (file text)
-  (let* ((img (create-image file nil nil))
-	 (size (image-size img t))
-	 (border 80)
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) 800))
-	 (svg (svg-create (+ image-width border) 800
-			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
-    (svg-rectangle svg 0 0 (+ image-width border) 800
-		   :fill "red")
-    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
-	       :width image-width
-	       :height 800
-	       :x border)
-    (svg-text svg text
-	      :font-size 50
-	      :font-weight "bold"
-	      :stroke "white"
-	      :fill "white"
-	      :font-family "futura"
-	      :transform "rotate(270 50 50)"
-	      :x -680
-	      :y 60)
-    svg))
-
 (defun posters-make-svg (file text)
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
-	 (image-height 1200)
-	 (image-width (round (* (/ (* (car size) 1.0)
-				   (cdr size))
-				image-height)))
-	 (svg (svg-create image-width image-height
-			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
-	 (font-size 200)
-	 (heading "87 Bergman#01 Things#02"))
-    (svg-opacity-gradient
-     svg 'left-gradient 'linear
-     '((0 . "black")
-       (40 . "black")))
-    (svg-rectangle svg 0 0 image-width (+ image-height 4)
-		   :fill "white")
-    (svg-embed svg (expand-file-name file)
-	       (if (string-match "png$" file)
-		   "image/png"
-		 "image/jpeg")
-	       nil
+	 (image-width (* (/ (* (car size) 1.0) (cdr size)) 800))
+	 (svg (svg-create image-width  800
+			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
-	       :height image-height)
-    (loop for i from 1 upto 16 by 4
-	  do (svg-text svg heading
-		       :font-size font-size
-		       :font-weight "regular"
-		       :stroke "black"
-		       :stroke-width (format "%s" i)
-		       :fill "black"
-		       :font-family "JRS"
-		       :transform "rotate(270 50 50)"
-		       :opacity (format "%.2f" (- 1 (/ (* i 1.0) 16)))
-		       :x (+ (- image-height) 150)
-		       :y 180))
-    (svg-text svg heading
-	      :font-size font-size
-	      :font-weight "regular"
-	      :stroke "white"
-	      :stroke-width "1"
-	      :fill "white"
-	      :font-family "JRS"
-	      :transform "rotate(270 50 50)"
-	      :x (+ (- image-height) 150)
-	      :y 180)
+	       :height 800
+	       :x 0)
+    (svg-text svg (format "%s" text)
+	      :font-size 50
+	      :font-weight "bold"
+	      :stroke "black"
+	      :fill "black"
+	      :stroke-width 8
+	      :font-family "Brush ATF"
+	      :text-anchor "middle"
+	      :y 50
+	      :x (/ image-width 2))
+    (when t
+      (svg-text svg (format "%s" text)
+		:font-size 50
+		:font-weight "bold"
+		:stroke "white"
+		:stroke-width 0
+		:fill "white"
+		:font-family "Brush ATF"
+		:text-anchor "middle"
+		:y 51
+		:x (- (/ image-width 2) 2)))
+    (svg-text svg "Decade!"
+	      :font-size 50
+	      :font-weight "bold"
+	      :stroke "black"
+	      :fill "black"
+	      :stroke-width 8
+	      :font-family "Brush ATF"
+	      :text-anchor "middle"
+	      :y (- (cdr size) 215)
+	      :x (/ image-width 2))
+    (when t
+      (svg-text svg "Decade!"
+		:font-size 50
+		:font-weight "bold"
+		:stroke "white"
+		:stroke-width 0
+		:fill "white"
+		:font-family "Brush ATF"
+		:text-anchor "middle"
+		:y (- (cdr size) 214)
+		:x (- (/ image-width 2) 2)))
     svg))
 
 (defun svg-opacity-gradient (svg id type stops)
