@@ -73,54 +73,56 @@ ID is the imdb movie ID, and DATE can be any string."
 (defun posters-make-svg (file text)
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) 800))
-	 (svg (svg-create image-width  800
+	 (image-height 800)
+	 (font-size 60)
+	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
-	       :height 800
+	       :height image-height
 	       :x 0)
     (svg-text svg (format "%s" text)
-	      :font-size 50
+	      :font-size font-size
 	      :font-weight "bold"
 	      :stroke "black"
 	      :fill "black"
 	      :stroke-width 8
 	      :font-family "Brush ATF"
 	      :text-anchor "middle"
-	      :y 50
+	      :y 60
 	      :x (/ image-width 2))
     (when t
       (svg-text svg (format "%s" text)
-		:font-size 50
+		:font-size font-size
 		:font-weight "bold"
 		:stroke "white"
 		:stroke-width 0
 		:fill "white"
 		:font-family "Brush ATF"
 		:text-anchor "middle"
-		:y 51
+		:y 61
 		:x (- (/ image-width 2) 2)))
     (svg-text svg "Decade!"
-	      :font-size 50
+	      :font-size font-size
 	      :font-weight "bold"
 	      :stroke "black"
 	      :fill "black"
 	      :stroke-width 8
 	      :font-family "Brush ATF"
 	      :text-anchor "middle"
-	      :y (- (cdr size) 215)
+	      :y (- image-height 20)
 	      :x (/ image-width 2))
     (when t
       (svg-text svg "Decade!"
-		:font-size 50
+		:font-size font-size
 		:font-weight "bold"
 		:stroke "white"
 		:stroke-width 0
 		:fill "white"
 		:font-family "Brush ATF"
 		:text-anchor "middle"
-		:y (- (cdr size) 214)
+		:y (- image-height 20)
 		:x (- (/ image-width 2) 2)))
     svg))
 
