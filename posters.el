@@ -126,6 +126,66 @@ ID is the imdb movie ID, and DATE can be any string."
 		:x (- (/ image-width 2) 2)))
     svg))
 
+(defun posters-make-from-file-hellraiser (file)
+  (let ((svg (posters-make-svg-hellraiser file "A Weekend of Blood"))
+	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "~/bin/convert"
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
+    file))
+
+(defun posters-make-svg-hellraiser (file text)
+  (let* ((img (create-image file nil nil))
+	 (size (image-size img t))
+	 (image-height 1200)
+	 (font-size 100)
+	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (svg (svg-create (+ image-width 300) image-height
+			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (svg-rectangle svg 0 0 (+ image-width 300) image-height
+		   :fill "#0000c0")
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
+	       :width image-width
+	       :height image-height
+	       :x 0)
+    (dotimes (i 100)
+      (svg-rectangle svg
+		     (- image-width (* 10 i) 10)
+		     0
+		     10
+		     image-height
+		     :fill "#0000c0"
+		     :fill-opacity (format "%.3f" (/ (* (- 100 i) 1.0) 100))
+		     ))
+    (svg-text svg (format "%s" text)
+	      :font-size font-size
+	      :font-weight "bold"
+	      :stroke "red"
+	      :fill "red"
+	      :stroke-width 14
+	      :font-family "Blockhead"
+	      :text-anchor "middle"
+	      :transform "rotate(90 0 0)"
+	      :y (- (- image-width) 150)
+	      :x (/ image-height 2))
+    (svg-text svg (format "%s" text)
+	      :font-size font-size
+	      :font-weight "bold"
+	      :stroke "red"
+	      :fill "black"
+	      :stroke-width 1
+	      :font-family "Blockhead"
+	      :text-anchor "middle"
+	      :transform "rotate(90 0 0)"
+	      :y (- (- image-width) 150)
+	      :x (/ image-height 2))
+    svg))
+
 (defun svg-opacity-gradient (svg id type stops)
   "Add a gradient with ID to SVG.
 TYPE is `linear' or `radial'.  STOPS is a list of percentage/color
