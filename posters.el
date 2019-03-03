@@ -148,14 +148,14 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (svg (svg-create (+ image-width 300) image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
     (svg-rectangle svg 0 0 (+ image-width 300) image-height
-		   :fill "#0000c0")
+		   :fill "black")
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
 	       :height image-height
 	       :x 0)
     (dotimes (i 100)
       (svg-rectangle svg
-		     (- image-width (* 10 i) 10)
+		     (- (+ image-width 300) (* 10 i) 10)
 		     0
 		     10
 		     image-height
