@@ -186,6 +186,44 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :x (/ image-height 2))
     svg))
 
+(defun posters-make-from-file-netflix (file)
+  (let ((svg (posters-make-svg-netflix file "NFLX2019"))
+	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "~/bin/convert"
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
+    file))
+
+
+(defun posters-make-svg-netflix (file text)
+  (let* ((img (create-image file nil nil))
+	 (size (image-size img t))
+	 (image-height 600)
+	 (font-size 100)
+	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (svg (svg-create image-width image-height
+			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
+	       :width image-width
+	       :height image-height)
+    (svg-text svg (format "%s" text)
+	      :font-size font-size
+	      :font-weight "bold"
+	      :stroke "blue"
+	      :fill "blue"
+	      :stroke-width 14
+	      :font-family "Futura"
+	      :text-anchor "middle"
+	      :transform "rotate(270 0 0)"
+	      :y 150
+	      :x (- (/ image-height 2)))
+    svg))
+
 (defun svg-opacity-gradient (svg id type stops)
   "Add a gradient with ID to SVG.
 TYPE is `linear' or `radial'.  STOPS is a list of percentage/color
