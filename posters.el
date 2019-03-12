@@ -145,9 +145,9 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (image-height 1200)
 	 (font-size 100)
 	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
-	 (svg (svg-create (+ image-width 300) image-height
+	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
-    (svg-rectangle svg 0 0 (+ image-width 300) image-height
+    (svg-rectangle svg 0 0 image-width image-height
 		   :fill "black")
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
@@ -155,34 +155,22 @@ ID is the imdb movie ID, and DATE can be any string."
 	       :x 0)
     (dotimes (i 100)
       (svg-rectangle svg
-		     (- (+ image-width 300) (* 10 i) 10)
+		     (- image-width (* 10 i) 10)
 		     0
 		     10
 		     image-height
 		     :fill "#0000c0"
-		     :fill-opacity (format "%.3f" (/ (* (- 100 i) 1.0) 100))
-		     ))
+		     :fill-opacity (format "%.3f" (/ (* (- 100 i) 1.0) 100))))
     (svg-text svg (format "%s" text)
 	      :font-size font-size
 	      :font-weight "bold"
-	      :stroke "red"
+	      :stroke "black"
 	      :fill "red"
-	      :stroke-width 14
-	      :font-family "Blockhead"
-	      :text-anchor "middle"
-	      :transform "rotate(90 0 0)"
-	      :y (- (- image-width) 150)
-	      :x (/ image-height 2))
-    (svg-text svg (format "%s" text)
-	      :font-size font-size
-	      :font-weight "bold"
-	      :stroke "red"
-	      :fill "black"
 	      :stroke-width 1
 	      :font-family "Blockhead"
 	      :text-anchor "middle"
 	      :transform "rotate(90 0 0)"
-	      :y (- (- image-width) 150)
+	      :y (- (- image-width) -150)
 	      :x (/ image-height 2))
     svg))
 
