@@ -159,12 +159,12 @@ ID is the imdb movie ID, and DATE can be any string."
 		     0
 		     10
 		     image-height
-		     :fill "#0000c0"
+		     :fill "#f00000"
 		     :fill-opacity (format "%.3f" (/ (* (- 100 i) 1.0) 100))))
     (svg-text svg (format "%s" text)
 	      :font-size font-size
 	      :font-weight "normal"
-	      :stroke "red"
+	      :stroke "black"
 	      :fill "black"
 	      :stroke-width 2
 	      :font-family "Blockhead"
