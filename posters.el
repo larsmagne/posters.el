@@ -34,7 +34,7 @@
   "Create an image based on the poster for ID with a sidebar of DATE.
 ID is the imdb movie ID, and DATE can be any string."
   (let* ((id-file (posters-get-image id))
-	 (svg (posters-make-svg id-file date))
+	 (svg (posters-make-svg-netflix id-file date))
 	 (file (format "/tmp/%s-poster.jpg" id)))
     (when (file-exists-p file)
       (delete-file file))
@@ -46,8 +46,8 @@ ID is the imdb movie ID, and DATE can be any string."
 			   nil "svg:-" file))
     file))
 
-(defun posters-make-from-file (file)
-  (let ((svg (posters-make-svg file ""))
+(defun posters-make-from-file-netflix (file)
+  (let ((svg (posters-make-svg-netflix file "NFLX2019"))
 	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
@@ -68,123 +68,6 @@ ID is the imdb movie ID, and DATE can be any string."
       (set-buffer-multibyte nil)
       (insert image)
       (write-region (point-min) (point-max) file))
-    file))
-
-(defun posters-make-svg (file text)
-  (let* ((img (create-image file nil nil))
-	 (size (image-size img t))
-	 (image-height 800)
-	 (font-size 60)
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
-	 (svg (svg-create image-width image-height
-			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
-    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
-	       :width image-width
-	       :height image-height
-	       :x 0)
-    (svg-text svg (format "%s" text)
-	      :font-size font-size
-	      :font-weight "bold"
-	      :stroke "black"
-	      :fill "black"
-	      :stroke-width 8
-	      :font-family "Brush ATF"
-	      :text-anchor "middle"
-	      :y 60
-	      :x (/ image-width 2))
-    (when t
-      (svg-text svg (format "%s" text)
-		:font-size font-size
-		:font-weight "bold"
-		:stroke "white"
-		:stroke-width 0
-		:fill "white"
-		:font-family "Brush ATF"
-		:text-anchor "middle"
-		:y 61
-		:x (- (/ image-width 2) 2)))
-    (svg-text svg "Decade!"
-	      :font-size font-size
-	      :font-weight "bold"
-	      :stroke "black"
-	      :fill "black"
-	      :stroke-width 8
-	      :font-family "Brush ATF"
-	      :text-anchor "middle"
-	      :y (- image-height 20)
-	      :x (/ image-width 2))
-    (when t
-      (svg-text svg "Decade!"
-		:font-size font-size
-		:font-weight "bold"
-		:stroke "white"
-		:stroke-width 0
-		:fill "white"
-		:font-family "Brush ATF"
-		:text-anchor "middle"
-		:y (- image-height 20)
-		:x (- (/ image-width 2) 2)))
-    svg))
-
-(defun posters-make-from-file-hellraiser (file)
-  (let ((svg (posters-make-svg-hellraiser file "A Weekend of Blood"))
-	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
-    (when (file-exists-p file)
-      (delete-file file))
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (svg-print svg)
-      (call-process-region (point-min) (point-max) "~/bin/convert"
-			   nil (get-buffer-create "*convert*")
-			   nil "svg:-" file))
-    file))
-
-(defun posters-make-svg-hellraiser (file text)
-  (let* ((img (create-image file nil nil))
-	 (size (image-size img t))
-	 (image-height 1200)
-	 (font-size 100)
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
-	 (svg (svg-create image-width image-height
-			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
-    (svg-rectangle svg 0 0 image-width image-height
-		   :fill "black")
-    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
-	       :width image-width
-	       :height image-height
-	       :x 0)
-    (dotimes (i 100)
-      (svg-rectangle svg
-		     (- image-width (* 10 i) 10)
-		     0
-		     10
-		     image-height
-		     :fill "#f00000"
-		     :fill-opacity (format "%.3f" (/ (* (- 100 i) 1.0) 100))))
-    (svg-text svg (format "%s" text)
-	      :font-size font-size
-	      :font-weight "normal"
-	      :stroke "black"
-	      :fill "black"
-	      :stroke-width 2
-	      :font-family "Blockhead"
-	      :text-anchor "middle"
-	      :transform "rotate(90 0 0)"
-	      :y (- (- image-width) -150)
-	      :x (/ image-height 2))
-    svg))
-
-(defun posters-make-from-file-netflix (file)
-  (let ((svg (posters-make-svg-netflix file "NFLX2019"))
-	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
-    (when (file-exists-p file)
-      (delete-file file))
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (svg-print svg)
-      (call-process-region (point-min) (point-max) "~/bin/convert"
-			   nil (get-buffer-create "*convert*")
-			   nil "svg:-" file))
     file))
 
 
