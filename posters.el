@@ -59,6 +59,19 @@ ID is the imdb movie ID, and DATE can be any string."
 			   nil "svg:-" file))
     file))
 
+(defun posters-make-from-file-general (file string)
+  (let ((svg (posters-make-svg-general file string))
+	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "~/bin/convert"
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
+    file))
+
 (defun posters-get-image (id)
   (let ((image (imdb-get-image-and-country id t))
 	(file (format "/tmp/%s.jpg" id)))
@@ -93,6 +106,29 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :transform "rotate(270 0 0)"
 	      :y 150
 	      :x (- (/ image-height 2)))
+    svg))
+
+(defun posters-make-svg-general (file text)
+  (let* ((img (create-image file nil nil))
+	 (size (image-size img t))
+	 (image-height 600)
+	 (font-size 50)
+	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (svg (svg-create image-width image-height
+			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (clear-image-cache)
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
+	       :width image-width
+	       :height image-height)
+    (svg-text svg (format "%s" text)
+	      :font-size font-size
+	      :font-weight "bold"
+	      :stroke "black"
+	      :fill "black"
+	      :stroke-width 1
+	      :font-family "Futura"
+	      :y 70
+	      :x 30)
     svg))
 
 (defun svg-opacity-gradient (svg id type stops)
