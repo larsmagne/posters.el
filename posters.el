@@ -59,8 +59,8 @@ ID is the imdb movie ID, and DATE can be any string."
 			   nil "svg:-" file))
     file))
 
-(defun posters-make-from-file-general (file string)
-  (let ((svg (posters-make-svg-general file string))
+(defun posters-make-from-file-general (file string &optional color)
+  (let ((svg (posters-make-svg-general file string color))
 	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
@@ -108,7 +108,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :x (- (/ image-height 2)))
     svg))
 
-(defun posters-make-svg-general (file text)
+(defun posters-make-svg-general (file text &optional color)
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
 	 (image-height 600)
@@ -123,8 +123,8 @@ ID is the imdb movie ID, and DATE can be any string."
     (svg-text svg (format "%s" text)
 	      :font-size font-size
 	      :font-weight "bold"
-	      :stroke "black"
-	      :fill "black"
+	      :stroke (or color "black")
+	      :fill (or color "black")
 	      :stroke-width 1
 	      :font-family "Futura"
 	      :y 70
