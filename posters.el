@@ -48,7 +48,7 @@ ID is the imdb movie ID, and DATE can be any string."
 
 (defun posters-make-from-file-netflix (file)
   (let ((svg (posters-make-svg-netflix file "NFLX2019"))
-	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
+	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
     (with-temp-buffer
@@ -61,7 +61,7 @@ ID is the imdb movie ID, and DATE can be any string."
 
 (defun posters-make-from-file-general (file string &optional color)
   (let ((svg (posters-make-svg-general file string color))
-	(file (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
+	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
     (with-temp-buffer
@@ -92,12 +92,12 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (clear-image-cache)
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
 	       :height image-height)
     (svg-text svg (format "%s" text)
 	      :font-size font-size
-	      :font-weight "bold"
 	      :stroke "blue"
 	      :fill "blue"
 	      :stroke-width 14
@@ -152,6 +152,81 @@ pairs."
        (dom-node 'stop `((offset . ,(format "%s%%" (car stop)))
 			 (stop-opacity . ,(cdr stop)))))
      stops))))
+
+(defun posters-find-font-size (text image-width)
+  (loop with prev-height = 10
+	for font-size from 10 upto 300
+	do (let* ((svg (svg-create (+ image-width 100) image-width
+				   :xmlns:xlink "http://www.w3.org/1999/xlink")))
+	     (svg-text svg (format "%s" text)
+		       :font-size font-size
+		       :font-weight "bold"
+		       :stroke "black"
+		       :fill "black"
+		       :stroke-width 1
+		       :font-family "Futura"
+		       :y (/ image-width 2)
+		       :x 0)
+	     (let ((file "/tmp/temp.png"))
+	       (when (file-exists-p file)
+		 (delete-file file))
+	       (with-temp-buffer
+		 (set-buffer-multibyte nil)
+		 (svg-print svg)
+		 (call-process-region (point-min) (point-max) "~/bin/convert"
+				      nil (get-buffer-create "*convert*")
+				      nil "svg:-" file))
+	       (call-process "convert" nil nil nil
+			     file "-trim" "+repage" "/tmp/crop.png")
+	       (with-temp-buffer
+		 (call-process "identify" nil (current-buffer)
+			       nil "/tmp/crop.png")
+		 (let ((size (split-string
+			      (nth 2 (split-string (buffer-string)))
+			      "x")))
+		   (when (>= (string-to-number (car size))
+			     image-width)
+		     (return (cons (1- font-size) prev-height)))
+		   (setq prev-height (string-to-number (cadr size)))))))))
+
+(defun posters-make-svg-big (file text &optional color)
+  (let* ((img (create-image file nil nil))
+	 (size (image-size img t))
+	 (image-height 600)
+	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (text-size (posters-find-font-size text image-width))
+	 (font-size (car text-size))
+	 (svg (svg-create image-width image-height
+			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (clear-image-cache)
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
+	       :width image-width
+	       :height image-height)
+    (svg-text svg (format "%s" text)
+	      :font-size font-size
+	      :font-weight "bold"
+	      :stroke (or color "black")
+	      :fill (or color "black")
+	      :stroke-width 1
+	      :font-family "Futura"
+	      :y (+ (/ image-height 2)
+		    (/ (cdr text-size) 2))
+	      :x 0)
+    svg))
+
+(defun posters-make-from-file-big (file string &optional color)
+  (let ((svg (posters-make-svg-big file string color))
+	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "~/bin/convert"
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
+    file))
+
 
 (provide 'posters)
 
