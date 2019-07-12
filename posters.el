@@ -111,8 +111,8 @@ ID is the imdb movie ID, and DATE can be any string."
 (defun posters-make-svg-general (file text &optional color)
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
-	 (image-height 600)
-	 (font-size 50)
+	 (image-height 900)
+	 (font-size 100)
 	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
@@ -127,7 +127,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :fill (or color "black")
 	      :stroke-width 1
 	      :font-family "Futura"
-	      :y 70
+	      :y 130
 	      :x 30)
     svg))
 
@@ -153,7 +153,7 @@ pairs."
 			 (stop-opacity . ,(cdr stop)))))
      stops))))
 
-(defun posters-find-font-size (text image-width)
+(defun posters-find-font-size-for-width (text image-width)
   (loop with prev-height = 10
 	for font-size from 10 upto 300
 	do (let* ((svg (svg-create (+ image-width 100) image-width
@@ -194,7 +194,7 @@ pairs."
 	 (size (image-size img t))
 	 (image-height 600)
 	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
-	 (text-size (posters-find-font-size text image-width))
+	 (text-size (posters-find-font-size-for-width text image-width))
 	 (font-size (car text-size))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
@@ -227,6 +227,41 @@ pairs."
 			   nil "svg:-" file))
     file))
 
+(defun posters-find-font-size-for-height (text target-height)
+  (loop with prev-width = 10
+	for font-size from 10 upto 300
+	do (let* ((svg (svg-create 1000 (+ 100 target-height)
+				   :xmlns:xlink "http://www.w3.org/1999/xlink")))
+	     (svg-text svg (format "%s" text)
+		       :font-size font-size
+		       :font-weight "bold"
+		       :stroke "black"
+		       :fill "black"
+		       :stroke-width 1
+		       :font-family "Futura"
+		       :y target-height
+		       :x 0)
+	     (let ((file "/tmp/temp.png"))
+	       (when (file-exists-p file)
+		 (delete-file file))
+	       (with-temp-buffer
+		 (set-buffer-multibyte nil)
+		 (svg-print svg)
+		 (call-process-region (point-min) (point-max) "~/bin/convert"
+				      nil (get-buffer-create "*convert*")
+				      nil "svg:-" file))
+	       (call-process "convert" nil nil nil
+			     file "-trim" "+repage" "/tmp/crop.png")
+	       (with-temp-buffer
+		 (call-process "identify" nil (current-buffer)
+			       nil "/tmp/crop.png")
+		 (let ((size (split-string
+			      (nth 2 (split-string (buffer-string)))
+			      "x")))
+		   (when (>= (string-to-number (cadr size))
+			     target-height)
+		     (return (cons (1- font-size) prev-width)))
+		   (setq prev-width (string-to-number (car size)))))))))
 
 (provide 'posters)
 
