@@ -127,8 +127,8 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :fill (or color "black")
 	      :stroke-width 1
 	      :font-family "Futura"
-	      :y 130
-	      :x 30)
+	      :y 120
+	      :x 45)
     svg))
 
 (defun svg-opacity-gradient (svg id type stops)
