@@ -263,6 +263,84 @@ pairs."
 		     (return (cons (1- font-size) prev-width)))
 		   (setq prev-width (string-to-number (car size)))))))))
 
+;; (find-file (posters-make-from-file-bistro "~/pics/redslur/P1410427.JPG" "Poulet|Rôti l'ami|Louis"))
+
+(defun posters-make-svg-bistro (file text)
+  (let* ((img (create-image file nil nil))
+	 (size (image-size img t))
+	 (image-height 1200)
+	 (image-width (round (* (/ (* (car size) 1.0)
+				   (cdr size))
+				image-height)))
+	 (svg (svg-create image-width image-height
+			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
+	 (font-size 400)
+	 (y 300))
+    (svg-opacity-gradient
+     svg 'left-gradient 'linear
+     '((0 . "black")
+       (40 . "black")))
+    (svg-rectangle svg 0 0 image-width (+ image-height 4)
+		   :fill "white")
+    (svg-embed svg (expand-file-name file)
+	       (mailcap-file-name-to-mime-type file)
+	       nil
+	       :width image-width
+	       :height image-height)
+    (let ((texts (split-string text "|")))
+      (dolist (text texts)
+	(setq text (concat text (format "#0%d" (1+ (random 3)))))
+	(loop for i from 1 upto 16 by 4
+	      do (svg-text svg text
+			   :font-size font-size
+			   :font-weight "regular"
+			   :stroke "black"
+			   :stroke-width (format "%s" i)
+			   :fill "black"
+			   :font-family "JRS"
+			   :opacity (format "%.2f" (- 1 (/ (* i 1.0) 16)))
+			   :x 50
+			   :y y))
+	(svg-text svg text		  
+		  :font-size font-size
+		  :font-weight "regular"
+		  :stroke "white"
+		  :stroke-width "1"
+		  :fill "white"
+		  :font-family "JRS"
+		  :x 50
+		  :y y)
+	(incf y (min 300 (/ 1000 (length texts))))))
+    svg))
+
+(defun posters-make-from-file-bistro (file string &optional color)
+  (let ((svg (posters-make-svg-bistro file string))
+	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "~/bin/convert"
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
+    file))
+
+(defun posters-change-image-bistro (text)
+  (interactive "sTitle: ")
+  (if (not (looking-at ".*src=\"\\([^\"]+\\)\""))
+      (error "Nothing under point")
+    (let* ((old (substring-no-properties (match-string 1)))
+	   (new (posters-make-from-file-bistro old text))
+	   (edges (window-inside-pixel-edges
+		   (get-buffer-window (current-buffer)))))
+      (delete-region (line-beginning-position) (line-end-position))
+      (insert-image
+       (create-image new nil nil
+	:max-width (truncate (* 0.9 (- (nth 2 edges) (nth 0 edges))))
+	:max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
+       (format "<img src=%S>" new)))))
+
 (provide 'posters)
 
 ;;; posters.el ends here
