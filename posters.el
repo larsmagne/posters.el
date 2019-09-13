@@ -116,6 +116,8 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (setq font-size (* (/ (float image-width) 680)
+		       45))
     (clear-image-cache)
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
@@ -127,7 +129,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :fill (or color "black")
 	      :stroke-width 1
 	      :font-family "Futura"
-	      :y 120
+	      :y (+ font-size 10)
 	      :x 45)
     svg))
 
