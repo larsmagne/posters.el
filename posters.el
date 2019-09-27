@@ -67,7 +67,7 @@ ID is the imdb movie ID, and DATE can be any string."
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (svg-print svg)
-      (call-process-region (point-min) (point-max) "~/bin/convert"
+      (call-process-region (point-min) (point-max) "convert"
 			   nil (get-buffer-create "*convert*")
 			   nil "svg:-" file))
     file))
@@ -130,7 +130,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :stroke-width 1
 	      :font-family "Futura"
 	      :y (+ font-size 10)
-	      :x 45)
+	      :x (+ 10 (/ font-size 5)))
     svg))
 
 (defun svg-opacity-gradient (svg id type stops)
