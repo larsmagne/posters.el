@@ -168,7 +168,7 @@ pairs."
 		       :font-weight "bold"
 		       :stroke "black"
 		       :fill "black"
-		       :stroke-width 1
+		       :stroke-width 0
 		       :font-family "Futura"
 		       :y (/ (* image-width 2) 2)
 		       :x 0)
@@ -228,7 +228,7 @@ pairs."
 	      :font-weight "bold"
 	      :stroke (or color "black")
 	      :fill (or color "black")
-	      :stroke-width 1
+	      :stroke-width 0
 	      :font-family "Futura"
 	      :y (+ (/ image-height 2)
 		    (/ (cadr text-size) 2))
