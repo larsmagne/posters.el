@@ -155,11 +155,14 @@ pairs."
 			 (stop-opacity . ,(cdr stop)))))
      stops))))
 
-(defun posters-find-font-size-for-width (text image-width)
+(defun posters-find-font-size-for-width (text image-width
+					      &optional start end step)
+  (setq step (or step 10))
   (loop with prev-height = 10
-	for font-size from 10 upto 300
-	do (let* ((svg (svg-create (+ image-width 100) image-width
-				   :xmlns:xlink "http://www.w3.org/1999/xlink")))
+	and prev-font-size = (or start 100)
+	for font-size from (or start 100) upto (or end 1200) by step
+	do (let* ((svg (svg-create (+ image-width 100)
+				   (* image-width 2))))
 	     (svg-text svg (format "%s" text)
 		       :font-size font-size
 		       :font-weight "bold"
@@ -167,7 +170,7 @@ pairs."
 		       :fill "black"
 		       :stroke-width 1
 		       :font-family "Futura"
-		       :y (/ image-width 2)
+		       :y (/ (* image-width 2) 2)
 		       :x 0)
 	     (let ((file "/tmp/temp.png"))
 	       (when (file-exists-p file)
@@ -188,8 +191,23 @@ pairs."
 			      "x")))
 		   (when (>= (string-to-number (car size))
 			     image-width)
-		     (return (cons (1- font-size) prev-height)))
-		   (setq prev-height (string-to-number (cadr size)))))))))
+		     (return
+		      (if (>= step 0.1)
+			  (posters-find-font-size-for-width
+			   text image-width (- font-size step)
+			   (+ font-size step) (/ (float step) 10))
+			(list font-size
+			      prev-height
+			      (with-temp-buffer
+				(call-process "convert" nil t nil
+					      file "-trim" 
+					      "-format" "%O" "info:")
+				(goto-char (point-min))
+				(and (looking-at "[+]\\([0-9]+\\)")
+				     (string-to-number
+				      (match-string 1))))))))
+		   (setq prev-height (string-to-number (cadr size))
+			 prev-font-size font-size)))))))
 
 (defun posters-make-svg-big (file text &optional color)
   (let* ((img (create-image file nil nil))
@@ -200,6 +218,7 @@ pairs."
 	 (font-size (car text-size))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
+    (message "text-size %s" text-size)
     (clear-image-cache)
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
@@ -212,8 +231,8 @@ pairs."
 	      :stroke-width 1
 	      :font-family "Futura"
 	      :y (+ (/ image-height 2)
-		    (/ (cdr text-size) 2))
-	      :x 0)
+		    (/ (cadr text-size) 2))
+	      :x (1+ (- (caddr text-size))))
     svg))
 
 (defun posters-make-from-file-big (file string &optional color)
