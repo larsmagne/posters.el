@@ -157,7 +157,7 @@ pairs."
 
 (defun posters-find-font-size-for-width (text image-width
 					      &optional start end step)
-  (setq step (or step 10))
+  (setq step (or step 100))
   (loop with prev-height = 10
 	and prev-font-size = (or start 100)
 	for font-size from (or start 100) upto (or end 1200) by step
@@ -218,7 +218,7 @@ pairs."
 	 (font-size (car text-size))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
-    (message "text-size %s" text-size)
+    ;;(message "text-size %s" text-size)
     (clear-image-cache)
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :width image-width
@@ -233,6 +233,17 @@ pairs."
 	      :y (+ (/ image-height 2)
 		    (/ (cadr text-size) 2))
 	      :x (1+ (- (caddr text-size))))
+    (when nil
+      (svg-text svg (format "%s" "#98")
+		:font-size (/ image-height 10)
+		:font-weight "bold"
+		:stroke "blue"
+		:fill "blue"
+		:stroke-width 1
+		:font-family "Futura"
+		:text-anchor "end"
+		:y (- image-height 20)
+		:x (- image-width 20)))
     svg))
 
 (defun posters-make-from-file-big (file string &optional color)
