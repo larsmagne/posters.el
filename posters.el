@@ -189,8 +189,8 @@ pairs."
 		 (let ((size (split-string
 			      (nth 2 (split-string (buffer-string)))
 			      "x")))
-		   (when (>= (string-to-number (car size))
-			     image-width)
+		   (when (> (- (string-to-number (car size)) 2)
+			    image-width)
 		     (return
 		      (if (>= step 0.1)
 			  (posters-find-font-size-for-width
@@ -232,7 +232,7 @@ pairs."
 	      :font-family "Futura"
 	      :y (+ (/ image-height 2)
 		    (/ (cadr text-size) 2))
-	      :x (1+ (- (caddr text-size))))
+	      :x (- (1+ (caddr text-size))))
     (when nil
       (svg-text svg (format "%s" "#98")
 		:font-size (/ image-height 10)
@@ -258,6 +258,38 @@ pairs."
 			   nil (get-buffer-create "*convert*")
 			   nil "svg:-" file))
     file))
+
+(defun posters-change-image-big (text)
+  (interactive "sText: ")
+  (clear-image-cache)
+  (let ((image (get-text-property (point) 'display)))
+    (when (or (not image)
+	      (not (consp image))
+	      (not (eq (car image) 'image)))
+      (error "No image under point"))
+    (let* ((data (getf (cdr image) :data))
+	   (file (getf (cdr image) :file))
+	   (inhibit-read-only t))
+      (when data
+	(with-temp-buffer
+	  (set-buffer-multibyte nil)
+	  (insert data)
+	  (setq file (concat (make-temp-file "poster")
+			     "."
+			     (car (last (split-string
+					 (ewp-content-type data)
+					 "/")))))
+	  (write-region (point-min) (point-max) file)))
+      (let ((new (posters-make-from-file-big file text "red"))
+	    (edges (window-inside-pixel-edges
+		    (get-buffer-window (current-buffer)))))
+	(delete-region (line-beginning-position) (line-end-position))
+	(insert-image
+	 (create-image
+	  new nil nil
+	  :max-width (truncate (* 0.9 (- (nth 2 edges) (nth 0 edges))))
+	  :max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
+	 (format "<img src=%S>" new))))))
 
 (defun posters-find-font-size-for-height (text target-height)
   (loop with prev-width = 10
