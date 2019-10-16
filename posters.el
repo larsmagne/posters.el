@@ -276,7 +276,7 @@ pairs."
 				image-height)))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
-	 (font-size 400)
+	 (font-size 350)
 	 (y 300))
     (svg-opacity-gradient
      svg 'left-gradient 'linear
@@ -330,6 +330,7 @@ pairs."
 
 (defun posters-change-image-bistro (text)
   (interactive "sTitle: ")
+  (clear-image-cache)
   (if (not (looking-at ".*src=\"\\([^\"]+\\)\""))
       (error "Nothing under point")
     (let* ((old (substring-no-properties (match-string 1)))
