@@ -213,7 +213,8 @@ pairs."
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
 	 (image-height 600)
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (image-width (truncate (* (/ (* (car size) 1.0) (cdr size))
+				   image-height)))
 	 (text-size (posters-find-font-size-for-width text image-width))
 	 (font-size (car text-size))
 	 (svg (svg-create image-width image-height
@@ -281,7 +282,7 @@ pairs."
 					 "/")))))
 	  (write-region (point-min) (point-max) file)))
       (let* ((colors '("red" "blue" "green" "orange" "white" "black"
-		       "yellow"))
+		       "yellow" "pink" "brown" "teal" "purple"))
 	     (new (posters-make-from-file-big
 		   file text
 		   (elt colors (random (length colors)))))
