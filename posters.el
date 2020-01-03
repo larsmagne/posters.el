@@ -280,9 +280,13 @@ pairs."
 					 (ewp-content-type data)
 					 "/")))))
 	  (write-region (point-min) (point-max) file)))
-      (let ((new (posters-make-from-file-big file text "red"))
-	    (edges (window-inside-pixel-edges
-		    (get-buffer-window (current-buffer)))))
+      (let* ((colors '("red" "blue" "green" "orange" "white" "black"
+		       "yellow"))
+	     (new (posters-make-from-file-big
+		   file text
+		   (elt colors (random (length colors)))))
+	     (edges (window-inside-pixel-edges
+		     (get-buffer-window (current-buffer)))))
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert-image
 	 (create-image
