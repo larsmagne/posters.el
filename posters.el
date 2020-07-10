@@ -67,6 +67,7 @@ ID is the imdb movie ID, and DATE can be any string."
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (svg-print svg)
+      (write-region (point-min) (point-max) "/tmp/a.svg")
       (call-process-region (point-min) (point-max) "convert"
 			   nil (get-buffer-create "*convert*")
 			   nil "svg:-" file))
@@ -232,8 +233,9 @@ pairs."
 	      :stroke-width 0
 	      :font-family "Futura"
 	      :y (+ (/ image-height 2)
+		    ;; -30
 		    (/ (cadr text-size) 2))
-	      :x (- (1+ (caddr text-size))))
+	      :x (max 0 (- (1+ (caddr text-size)))))
     (when nil
       (svg-text svg (format "%s" "#98")
 		:font-size (/ image-height 10)
@@ -260,41 +262,46 @@ pairs."
 			   nil "svg:-" file))
     file))
 
-(defun posters-change-image-big (text)
-  (interactive "sText: ")
-  (clear-image-cache)
-  (let ((image (get-text-property (point) 'display)))
-    (when (or (not image)
-	      (not (consp image))
-	      (not (eq (car image) 'image)))
-      (error "No image under point"))
-    (let* ((data (getf (cdr image) :data))
-	   (file (getf (cdr image) :file))
-	   (inhibit-read-only t))
-      (when data
-	(with-temp-buffer
-	  (set-buffer-multibyte nil)
-	  (insert data)
-	  (setq file (concat (make-temp-file "poster")
-			     "."
-			     (car (last (split-string
-					 (ewp-content-type data)
-					 "/")))))
-	  (write-region (point-min) (point-max) file)))
-      (let* ((colors '("red" "blue" "green" "orange" "white" "black"
-		       "yellow" "pink" "brown" "teal" "purple"))
-	     (new (posters-make-from-file-big
-		   file text
-		   (elt colors (random (length colors)))))
-	     (edges (window-inside-pixel-edges
-		     (get-buffer-window (current-buffer)))))
-	(delete-region (line-beginning-position) (line-end-position))
-	(insert-image
-	 (create-image
-	  new nil nil
-	  :max-width (truncate (* 0.9 (- (nth 2 edges) (nth 0 edges))))
-	  :max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
-	 (format "<img src=%S>" new))))))
+(defun posters-change-image-big (text &optional colorp)
+  (interactive "sText: \nP")
+  (let ((color nil))
+    (when colorp
+      (setq color (read-from-minibuffer "Color: ")))
+    (clear-image-cache)
+    (let ((image (get-text-property (point) 'display)))
+      (when (or (not image)
+		(not (consp image))
+		(not (eq (car image) 'image)))
+	(error "No image under point"))
+      (let* ((data (getf (cdr image) :data))
+	     (file (getf (cdr image) :file))
+	     (inhibit-read-only t))
+	(when data
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert data)
+	    (setq file (concat (make-temp-file "poster")
+			       "."
+			       (car (last (split-string
+					   (ewp-content-type data)
+					   "/")))))
+	    (write-region (point-min) (point-max) file)))
+	(let* ((colors '("red" "blue" "green" "orange" "white" "black"
+			 "yellow" "pink" "brown" "teal" "purple"
+			 "gray" "cyan" "magenta"))
+	       (new (posters-make-from-file-big
+		     file text
+		     (or color
+			 (elt colors (random (length colors))))))
+	       (edges (window-inside-pixel-edges
+		       (get-buffer-window (current-buffer)))))
+	  (delete-region (line-beginning-position) (line-end-position))
+	  (insert-image
+	   (create-image
+	    new nil nil
+	    :max-width (truncate (* 0.9 (- (nth 2 edges) (nth 0 edges))))
+	    :max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
+	   (format "<img src=%S>" new)))))))
 
 (defun posters-find-font-size-for-height (text target-height)
   (loop with prev-width = 10
@@ -384,15 +391,21 @@ pairs."
 
 (defun posters-make-from-file-bistro (file string &optional color)
   (let ((svg (posters-make-svg-bistro file string))
-	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
+	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file)))
+	(png (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (svg-print svg)
-      (call-process-region (point-min) (point-max) "~/bin/convert"
-			   nil (get-buffer-create "*convert*")
-			   nil "svg:-" file))
+      (call-process-region
+       (point-min) (point-max)
+       "inkscape" nil (get-buffer-create "*convert*") nil
+       "-p" (format "--export-filename=%s" png)
+       "--export-dpi=96"
+       "--export-background=rgb(100%,100%,100%)"
+       "--export-background-opacity=1"))
+    (call-process "convert" nil nil nil png file)   
     file))
 
 (defun posters-change-image-bistro (text)
