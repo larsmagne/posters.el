@@ -67,7 +67,6 @@ ID is the imdb movie ID, and DATE can be any string."
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (svg-print svg)
-      (write-region (point-min) (point-max) "/tmp/a.svg")
       (call-process-region (point-min) (point-max) "convert"
 			   nil (get-buffer-create "*convert*")
 			   nil "svg:-" file))
