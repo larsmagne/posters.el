@@ -423,6 +423,48 @@ pairs."
 	:max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
        (format "<img src=%S>" new)))))
 
+(defun posters-make-from-file-year (file week)
+  (let ((svg (posters-make-svg-year file
+				    (format "MCMXXXIX %s" week)))
+	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
+    (when (file-exists-p file)
+      (delete-file file))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (svg-print svg)
+      (call-process-region (point-min) (point-max) "~/bin/convert"
+			   nil (get-buffer-create "*convert*")
+			   nil "svg:-" file))
+    file))
+
+(defun posters-make-svg-year (file text)
+  (let* ((img (create-image file nil nil))
+	 (size (image-size img t))
+	 (image-height 1600)
+	 (font-size 90)
+	 (image-width (+ (* (/ (* (car size) 1.0) (cdr size)) image-height)
+			 200))
+	 (svg (svg-create image-width image-height)))
+    (clear-image-cache)
+    (svg-rectangle svg 0 0 image-width image-height :fill "#e06500")
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
+	       :x 50
+	       :y 50
+	       :width (- image-width 200 100)
+	       :height (- image-height 100))
+    (svg-text svg (format "%s" text)
+	      :font-size font-size
+	      :stroke "white"
+	      :fill "white"
+	      :stroke-width 1
+	      :font-family "Futura"
+	      :text-anchor "start"
+	      :font-weight "bold"
+	      :transform (format "rotate(90 %d %d)" 200 -300)
+	      :y (+ (/ image-height -2) 0)
+	      :x (+ (/ image-width 1.6) 0))
+    svg))
+
 (provide 'posters)
 
 ;;; posters.el ends here
