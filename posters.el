@@ -460,9 +460,9 @@ pairs."
 	      :font-family "Futura"
 	      :text-anchor "start"
 	      :font-weight "bold"
-	      :transform (format "rotate(90 %d %d)" 200 -300)
-	      :y (+ (/ image-height -2) 0)
-	      :x (+ (/ image-width 1.6) 0))
+	      :transform
+	      (format "rotate(90 '50%%' '50%%') translate(155 %s)"
+		      (+ (- image-width) 165)))
     svg))
 
 (provide 'posters)
