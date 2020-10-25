@@ -461,8 +461,7 @@ pairs."
 	      :text-anchor "start"
 	      :font-weight "bold"
 	      :transform
-	      (format "rotate(90 '50%%' '50%%') translate(155 %s)"
-		      (+ (- image-width) 165)))
+	      (format "rotate(90) translate(50 %s)" (+ (- image-width) 165)))
     svg))
 
 (provide 'posters)
