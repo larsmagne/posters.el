@@ -454,9 +454,15 @@ pairs."
 			 image-height))
 	 (font-size 45)
 	 (colors '("#345d98" "#d02d1c" "#eed023" "#99b1c9" "#345d98" "#3a7359"))
-	 (svg (svg-create total-width (+ food-height (* frame 2)))))
+	 (total-height (+ food-height (* frame 2)))
+	 (svg (svg-create total-width total-height)))
+    (when (> image-height food-height)
+      (setq image-width (* (/ (* (car image-size) 1.0) (cdr image-size))
+			   food-height))
+      (setq image-height (* (/ (* (cdr image-size) 1.0) (car image-size))
+			    image-width)))
     (clear-image-cache)
-    (svg-rectangle svg 0 0 total-width (+ food-height (* frame 2))
+    (svg-rectangle svg 0 0 total-width total-height
 		   :fill (seq-random-elt colors))
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :x (+ frame (max (/ (- food-width image-width) 2) 0))
@@ -474,14 +480,15 @@ pairs."
 	      :fill "white"
 	      :stroke-width 1
 	      :font-family "Futura"
-	      :text-anchor "start"
+	      :text-anchor "middle"
 	      :font-weight "bold"
 	      :transform
 	      (format "rotate(90) translate(%s %s)"
-		      frame (+ (- food-width) frame
-			       (/ font-size -2)
-			       -10
-			       (/ margin -2))))
+		      (/ total-height 2)
+		      (+ (- food-width) frame
+			 (/ font-size -2)
+			 -10
+			 (/ margin -2))))
     svg))
 
 (provide 'posters)
