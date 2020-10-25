@@ -441,11 +441,12 @@ pairs."
 (defun posters-make-svg-year (file text)
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
-	 (image-height 1600)
-	 (font-size 90)
-	 (image-width (+ (* (/ (* (car size) 1.0) (cdr size)) image-height)
-			 200))
-	 (food-width (* (/ 1805.0 1200) 1600))
+	 (margin 100)
+	 (image-width (+ 1300 margin))
+	 (font-size 45)
+	 (image-height (* (/ (* (cdr size) 1.0) (car size))
+			  (- image-width margin)))
+	 (food-width (* (/ 1805.0 1200) image-height))
 	 (colors '("#345d98" "#d02d1c" "#eed023" "#99b1c9" "#345d98" "#3a7359"))
 	 (svg (svg-create (+ image-width food-width)
 			  image-height)))
@@ -456,7 +457,7 @@ pairs."
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :x 50
 	       :y 50
-	       :width (- image-width 200 100)
+	       :width (- image-width margin 100)
 	       :height (- image-height 100))
     (svg-embed svg "/tmp/DSC01763.JPG-poster.jpg" "image/jpg" nil
 	       :x image-width
@@ -472,7 +473,7 @@ pairs."
 	      :text-anchor "start"
 	      :font-weight "bold"
 	      :transform
-	      (format "rotate(90) translate(50 %s)" (+ (- image-width) 165)))
+	      (format "rotate(90) translate(50 %s)" (+ (- image-width) 90)))
     svg))
 
 (provide 'posters)
