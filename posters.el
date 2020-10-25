@@ -424,8 +424,8 @@ pairs."
 	:max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
        (format "<img src=%S>" new)))))
 
-(defun posters-make-from-file-year (file week)
-  (let ((svg (posters-make-svg-year file
+(defun posters-make-from-file-year (file food-file week)
+  (let ((svg (posters-make-svg-year file food-file
 				    (format "MCMXXXIX %s" week)))
 	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
     (when (file-exists-p file)
@@ -438,32 +438,36 @@ pairs."
 			   nil "svg:-" file))
     file))
 
-(defun posters-make-svg-year (file text)
-  (let* ((img (create-image file nil nil))
-	 (size (image-size img t))
+(defun posters-make-svg-year (file food-file text)
+  (let* ((img (create-image file nil nil :scaling 1))
+	 (food-size (image-size (create-image food-file nil nil :scaling 1) t))
+	 (frame 25)
 	 (margin 100)
-	 (image-width (+ 1300 margin))
+	 (food-width 1000)
+	 (food-height (* (/ (* (cdr food-size) 1.0) (car food-size))
+			 (- food-width 0)))
+	 (total-width (+ frame frame margin (* food-width 2)))
+	 (image-size (image-size img t))
+	 (image-height (* (/ (* (cdr image-size) 1.0) (car image-size))
+			  food-width))
+	 (image-width (* (/ (* (car image-size) 1.0) (cdr image-size))
+			 image-height))
 	 (font-size 45)
-	 (image-height (* (/ (* (cdr size) 1.0) (car size))
-			  (- image-width margin)))
-	 (food-width (* (/ 1805.0 1200) image-height))
 	 (colors '("#345d98" "#d02d1c" "#eed023" "#99b1c9" "#345d98" "#3a7359"))
-	 (svg (svg-create (+ image-width food-width)
-			  image-height)))
+	 (svg (svg-create total-width (+ food-height (* frame 2)))))
     (clear-image-cache)
-    (svg-rectangle svg 0 0 (+ image-width food-width)
-		   image-height
+    (svg-rectangle svg 0 0 total-width (+ food-height (* frame 2))
 		   :fill (seq-random-elt colors))
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
-	       :x 50
-	       :y 50
-	       :width (- image-width margin 100)
-	       :height (- image-height 100))
-    (svg-embed svg "/tmp/DSC01763.JPG-poster.jpg" "image/jpg" nil
-	       :x image-width
-	       :y 50
-	       :width (- food-width 50)
-	       :height (- image-height 100))
+	       :x (+ frame (max (/ (- food-width image-width) 2) 0))
+	       :y (+ frame (max (/ (- food-height image-height) 2) 0))
+	       :width image-width
+	       :height image-height)
+    (svg-embed svg food-file "image/jpg" nil
+	       :x (+ food-width frame margin)
+	       :y frame
+	       :width food-width
+	       :height food-height)
     (svg-text svg (format "%s" text)
 	      :font-size font-size
 	      :stroke "white"
@@ -473,7 +477,11 @@ pairs."
 	      :text-anchor "start"
 	      :font-weight "bold"
 	      :transform
-	      (format "rotate(90) translate(50 %s)" (+ (- image-width) 90)))
+	      (format "rotate(90) translate(%s %s)"
+		      frame (+ (- food-width) frame
+			       (/ font-size -2)
+			       -10
+			       (/ margin -2))))
     svg))
 
 (provide 'posters)
