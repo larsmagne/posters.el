@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'imdb)
+(require 'seq)
 
 (defun posters-make (id date)
   "Create an image based on the poster for ID with a sidebar of DATE.
@@ -444,13 +445,23 @@ pairs."
 	 (font-size 90)
 	 (image-width (+ (* (/ (* (car size) 1.0) (cdr size)) image-height)
 			 200))
-	 (svg (svg-create image-width image-height)))
+	 (food-width (* (/ 1805.0 1200) 1600))
+	 (colors '("#345d98" "#d02d1c" "#eed023" "#99b1c9" "#345d98" "#3a7359"))
+	 (svg (svg-create (+ image-width food-width)
+			  image-height)))
     (clear-image-cache)
-    (svg-rectangle svg 0 0 image-width image-height :fill "#e06500")
+    (svg-rectangle svg 0 0 (+ image-width food-width)
+		   image-height
+		   :fill (seq-random-elt colors))
     (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
 	       :x 50
 	       :y 50
 	       :width (- image-width 200 100)
+	       :height (- image-height 100))
+    (svg-embed svg "/tmp/DSC01763.JPG-poster.jpg" "image/jpg" nil
+	       :x image-width
+	       :y 50
+	       :width (- food-width 50)
 	       :height (- image-height 100))
     (svg-text svg (format "%s" text)
 	      :font-size font-size
