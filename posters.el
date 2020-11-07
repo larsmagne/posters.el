@@ -424,6 +424,8 @@ pairs."
 	:max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
        (format "<img src=%S>" new)))))
 
+;; (find-file (posters-make-from-file-year "~/films/She Done Him Wrong/mpv-shot0001.jpg" "~/tmp/legume.jpg" "XIV"))
+
 (defun posters-make-from-file-year (file food-file week)
   (let ((svg (posters-make-svg-year file food-file
 				    (format "MCMXXXIX %s" week)))
