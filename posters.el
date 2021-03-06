@@ -60,8 +60,8 @@ ID is the imdb movie ID, and DATE can be any string."
 			   nil "svg:-" file))
     file))
 
-(defun posters-make-from-file-general (file string &optional color)
-  (let ((svg (posters-make-svg-general file string color))
+(defun posters-make-from-file-director (file string &optional color)
+  (let ((svg (posters-make-svg-director file string color))
 	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
@@ -109,7 +109,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :x (- (/ image-height 2)))
     svg))
 
-(defun posters-make-svg-general (file text &optional color)
+(defun posters-make-svg-director (file text &optional color)
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
 	 (image-height 900)
@@ -455,9 +455,11 @@ pairs."
 	 (image-width (* (/ (* (car image-size) 1.0) (cdr image-size))
 			 image-height))
 	 (font-size 45)
-	 (colors '("#345d98" "#d02d1c" "#eed023" "#99b1c9" "#345d98" "#3a7359"))
+	 (colors '("#345d98" "#d02d1c" "#eed023"
+		   "#99b1c9" "#b0dabe" "#3a7359"))
 	 (total-height (+ food-height (* frame 2)))
-	 (svg (svg-create total-width total-height)))
+	 (svg (svg-create (+ frame margin (* food-width 1))
+			  total-height)))
     (when (> image-height food-height)
       (setq image-width (* (/ (* (car image-size) 1.0) (cdr image-size))
 			   food-height))
@@ -492,6 +494,42 @@ pairs."
 			 -10
 			 (/ margin -2))))
     svg))
+
+(defun posters-change-image-year (text)
+  (interactive "sTitle: ")
+  (clear-image-cache)
+  (if (not (looking-at ".*src=\"\\([^\"]+\\)\""))
+      (error "Nothing under point")
+    (let* ((old (substring-no-properties (match-string 1)))
+	   (new (posters-make-from-file-year old old text))
+	   (edges (window-inside-pixel-edges
+		   (get-buffer-window (current-buffer)))))
+      (delete-region (line-beginning-position) (line-end-position))
+      (insert-image
+       (create-image new nil nil
+	:max-width (truncate (* 0.9 (- (nth 2 edges) (nth 0 edges))))
+	:max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
+       (format "<img src=%S>" new)))))
+
+(defun posters-change-image-director (string color)
+  (interactive "sString: \nsColor: ")
+  (if (not (looking-at ".*src=\"\\([^\"]+\\)\""))
+      (error "Nothing under point")
+    (let* ((old (substring-no-properties (match-string 1)))
+	   (new (posters-make-from-file-director
+		 old string
+		 (if (zerop (length color))
+		     "white"
+		   color)))
+	   (edges (window-inside-pixel-edges
+		   (get-buffer-window (current-buffer)))))
+      (delete-region (line-beginning-position) (line-end-position))
+      (insert-image
+       (create-image
+	new nil nil
+	:max-width (truncate (* 0.9 (- (nth 2 edges) (nth 0 edges))))
+	:max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
+       (format "<img src=%S>" new)))))
 
 (provide 'posters)
 
