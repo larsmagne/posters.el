@@ -192,7 +192,7 @@ pairs."
 				 "x")))
 		      (when (> (- (string-to-number (car size)) 2)
 			       image-width)
-			(return
+			(cl-return
 			 (if (>= step 0.1)
 			     (posters-find-font-size-for-width
 			      text image-width (- font-size step)
@@ -336,7 +336,7 @@ pairs."
 				 "x")))
 		      (when (>= (string-to-number (cadr size))
 				target-height)
-			(return (cons (1- font-size) prev-width)))
+			(cl-return (cons (1- font-size) prev-width)))
 		      (setq prev-width (string-to-number (car size)))))))))
 
 ;; (find-file (posters-make-from-file-bistro "~/pics/redslur/P1410427.JPG" "Poulet|Rôti l'ami|Louis"))
