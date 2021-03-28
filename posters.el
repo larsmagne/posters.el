@@ -159,56 +159,56 @@ pairs."
 (defun posters-find-font-size-for-width (text image-width
 					      &optional start end step)
   (setq step (or step 100))
-  (loop with prev-height = 10
-	and prev-font-size = (or start 100)
-	for font-size from (or start 100) upto (or end 1200) by step
-	do (let* ((svg (svg-create (+ image-width 100)
-				   (* image-width 2))))
-	     (svg-text svg (format "%s" text)
-		       :font-size font-size
-		       :font-weight "bold"
-		       :stroke "black"
-		       :fill "black"
-		       :stroke-width 0
-		       :font-family "Futura"
-		       :y (/ (* image-width 2) 2)
-		       :x 0)
-	     (let ((file "/tmp/temp.png"))
-	       (when (file-exists-p file)
-		 (delete-file file))
-	       (with-temp-buffer
-		 (set-buffer-multibyte nil)
-		 (svg-print svg)
-		 (call-process-region (point-min) (point-max) "~/bin/convert"
-				      nil (get-buffer-create "*convert*")
-				      nil "svg:-" file))
-	       (call-process "convert" nil nil nil
-			     file "-trim" "+repage" "/tmp/crop.png")
-	       (with-temp-buffer
-		 (call-process "identify" nil (current-buffer)
-			       nil "/tmp/crop.png")
-		 (let ((size (split-string
-			      (nth 2 (split-string (buffer-string)))
-			      "x")))
-		   (when (> (- (string-to-number (car size)) 2)
-			    image-width)
-		     (return
-		      (if (>= step 0.1)
-			  (posters-find-font-size-for-width
-			   text image-width (- font-size step)
-			   (+ font-size step) (/ (float step) 10))
-			(list font-size
-			      prev-height
-			      (with-temp-buffer
-				(call-process "convert" nil t nil
-					      file "-trim" 
-					      "-format" "%O" "info:")
-				(goto-char (point-min))
-				(and (looking-at "[+]\\([0-9]+\\)")
-				     (string-to-number
-				      (match-string 1))))))))
-		   (setq prev-height (string-to-number (cadr size))
-			 prev-font-size font-size)))))))
+  (cl-loop with prev-height = 10
+	   and prev-font-size = (or start 100)
+	   for font-size from (or start 100) upto (or end 1200) by step
+	   do (let* ((svg (svg-create (+ image-width 100)
+				      (* image-width 2))))
+		(svg-text svg (format "%s" text)
+			  :font-size font-size
+			  :font-weight "bold"
+			  :stroke "black"
+			  :fill "black"
+			  :stroke-width 0
+			  :font-family "Futura"
+			  :y (/ (* image-width 2) 2)
+			  :x 0)
+		(let ((file "/tmp/temp.png"))
+		  (when (file-exists-p file)
+		    (delete-file file))
+		  (with-temp-buffer
+		    (set-buffer-multibyte nil)
+		    (svg-print svg)
+		    (call-process-region (point-min) (point-max) "~/bin/convert"
+					 nil (get-buffer-create "*convert*")
+					 nil "svg:-" file))
+		  (call-process "convert" nil nil nil
+				file "-trim" "+repage" "/tmp/crop.png")
+		  (with-temp-buffer
+		    (call-process "identify" nil (current-buffer)
+				  nil "/tmp/crop.png")
+		    (let ((size (split-string
+				 (nth 2 (split-string (buffer-string)))
+				 "x")))
+		      (when (> (- (string-to-number (car size)) 2)
+			       image-width)
+			(return
+			 (if (>= step 0.1)
+			     (posters-find-font-size-for-width
+			      text image-width (- font-size step)
+			      (+ font-size step) (/ (float step) 10))
+			   (list font-size
+				 prev-height
+				 (with-temp-buffer
+				   (call-process "convert" nil t nil
+						 file "-trim" 
+						 "-format" "%O" "info:")
+				   (goto-char (point-min))
+				   (and (looking-at "[+]\\([0-9]+\\)")
+					(string-to-number
+					 (match-string 1))))))))
+		      (setq prev-height (string-to-number (cadr size))
+			    prev-font-size font-size)))))))
 
 (defun posters-make-svg-big (file text &optional color)
   (let* ((img (create-image file nil nil))
@@ -304,40 +304,40 @@ pairs."
 	   (format "<img src=%S>" new)))))))
 
 (defun posters-find-font-size-for-height (text target-height)
-  (loop with prev-width = 10
-	for font-size from 10 upto 300
-	do (let* ((svg (svg-create 1000 (+ 100 target-height)
-				   :xmlns:xlink "http://www.w3.org/1999/xlink")))
-	     (svg-text svg (format "%s" text)
-		       :font-size font-size
-		       :font-weight "bold"
-		       :stroke "black"
-		       :fill "black"
-		       :stroke-width 1
-		       :font-family "Futura"
-		       :y target-height
-		       :x 0)
-	     (let ((file "/tmp/temp.png"))
-	       (when (file-exists-p file)
-		 (delete-file file))
-	       (with-temp-buffer
-		 (set-buffer-multibyte nil)
-		 (svg-print svg)
-		 (call-process-region (point-min) (point-max) "~/bin/convert"
-				      nil (get-buffer-create "*convert*")
-				      nil "svg:-" file))
-	       (call-process "convert" nil nil nil
-			     file "-trim" "+repage" "/tmp/crop.png")
-	       (with-temp-buffer
-		 (call-process "identify" nil (current-buffer)
-			       nil "/tmp/crop.png")
-		 (let ((size (split-string
-			      (nth 2 (split-string (buffer-string)))
-			      "x")))
-		   (when (>= (string-to-number (cadr size))
-			     target-height)
-		     (return (cons (1- font-size) prev-width)))
-		   (setq prev-width (string-to-number (car size)))))))))
+  (cl-loop with prev-width = 10
+	   for font-size from 10 upto 300
+	   do (let* ((svg (svg-create 1000 (+ 100 target-height)
+				      :xmlns:xlink "http://www.w3.org/1999/xlink")))
+		(svg-text svg (format "%s" text)
+			  :font-size font-size
+			  :font-weight "bold"
+			  :stroke "black"
+			  :fill "black"
+			  :stroke-width 1
+			  :font-family "Futura"
+			  :y target-height
+			  :x 0)
+		(let ((file "/tmp/temp.png"))
+		  (when (file-exists-p file)
+		    (delete-file file))
+		  (with-temp-buffer
+		    (set-buffer-multibyte nil)
+		    (svg-print svg)
+		    (call-process-region (point-min) (point-max) "~/bin/convert"
+					 nil (get-buffer-create "*convert*")
+					 nil "svg:-" file))
+		  (call-process "convert" nil nil nil
+				file "-trim" "+repage" "/tmp/crop.png")
+		  (with-temp-buffer
+		    (call-process "identify" nil (current-buffer)
+				  nil "/tmp/crop.png")
+		    (let ((size (split-string
+				 (nth 2 (split-string (buffer-string)))
+				 "x")))
+		      (when (>= (string-to-number (cadr size))
+				target-height)
+			(return (cons (1- font-size) prev-width)))
+		      (setq prev-width (string-to-number (car size)))))))))
 
 ;; (find-file (posters-make-from-file-bistro "~/pics/redslur/P1410427.JPG" "Poulet|Rôti l'ami|Louis"))
 
@@ -366,17 +366,17 @@ pairs."
     (let ((texts (split-string text "|")))
       (dolist (text texts)
 	(setq text (concat text (format "#0%d" (1+ (random 3)))))
-	(loop for i from 1 upto 16 by 4
-	      do (svg-text svg text
-			   :font-size font-size
-			   :font-weight "regular"
-			   :stroke "black"
-			   :stroke-width (format "%s" i)
-			   :fill "black"
-			   :font-family "JRS"
-			   :opacity (format "%.2f" (- 1 (/ (* i 1.0) 16)))
-			   :x 50
-			   :y y))
+	(cl-loop for i from 1 upto 16 by 4
+		 do (svg-text svg text
+			      :font-size font-size
+			      :font-weight "regular"
+			      :stroke "black"
+			      :stroke-width (format "%s" i)
+			      :fill "black"
+			      :font-family "JRS"
+			      :opacity (format "%.2f" (- 1 (/ (* i 1.0) 16)))
+			      :x 50
+			      :y y))
 	(svg-text svg text		  
 		  :font-size font-size
 		  :font-weight "regular"
@@ -386,7 +386,7 @@ pairs."
 		  :font-family "JRS"
 		  :x 50
 		  :y y)
-	(incf y (min 300 (/ 1000 (length texts))))))
+	(cl-incf y (min 300 (/ 1000 (length texts))))))
     svg))
 
 (defun posters-make-from-file-bistro (file string &optional color)
