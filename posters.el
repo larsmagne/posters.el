@@ -155,8 +155,7 @@ ID is the imdb movie ID, and DATE can be any string."
 			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
 	 (colours '("#e40303" "#ff8c00" "#ffed00"
 		    "#008026" "#004dff" "#750787"))
-	 (clip (svg-clip-path svg :id "text"))
-	 (steps 100))
+	 (clip (svg-clip-path svg :id "text")))
     (setq font-size (* (/ (float image-width) 680)
 		       45))
     (clear-image-cache)
@@ -169,10 +168,10 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :font-family "Futura"
 	      :y (+ font-size 10)
 	      :x (+ 10 (/ font-size 5)))
-    (dotimes (i steps)
-      (let ((step (/ (float image-width) steps)))
-	(svg-rectangle svg (* i step) 0
-		       step image-height
+    (dotimes (i 10)
+      (let ((step (/ (float font-size) 8.1)))
+	(svg-rectangle svg 0 (+ (* i step) (+ 18 (/ font-size 5)))
+		       image-width step
 		       :clip-path "url(#text)"
 		       :fill (elt colours (mod i (length colours))))))
     svg))
