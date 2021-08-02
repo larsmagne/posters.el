@@ -61,16 +61,27 @@ ID is the imdb movie ID, and DATE can be any string."
     file))
 
 (defun posters-make-from-file-director (file string &optional color)
-  (let ((svg (posters-make-svg-director file string color))
+  (posters--make-and-save #'posters-make-svg-director file string color))
+
+(defun posters-make-from-file-qc (file string &optional color)
+  (posters--make-and-save #'posters-make-svg-qc file string color))
+
+(defun posters--make-and-save (func file string color)
+  (let ((svg (funcall func file string color))
 	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file))))
     (when (file-exists-p file)
       (delete-file file))
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (svg-print svg)
-      (call-process-region (point-min) (point-max) "convert"
-			   nil (get-buffer-create "*convert*")
-			   nil "svg:-" file))
+      (when (file-exists-p "/tmp/poster.svg")
+	(delete-file "/tmp/poster.svg"))
+      (when (file-exists-p "/tmp/poster.svg")
+	(delete-file "/tmp/poster.svg"))
+      (write-region (point-min) (point-max) "/tmp/poster.svg"))
+    (call-process "rsvg-convert"
+		  nil (get-buffer-create "*convert*") nil
+		  "/tmp/poster.svg" "-o" file)
     file))
 
 (defun posters-get-image (id)
@@ -132,6 +143,38 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :font-family "Futura"
 	      :y (+ font-size 10)
 	      :x (+ 10 (/ font-size 5)))
+    svg))
+
+(defun posters-make-svg-qc (file text &optional color)
+  (let* ((img (create-image file nil nil))
+	 (size (image-size img t))
+	 (image-height 900)
+	 (font-size 100)
+	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (svg (svg-create image-width image-height
+			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
+	 (colours '("#e40303" "#ff8c00" "#ffed00"
+		    "#008026" "#004dff" "#750787"))
+	 (clip (svg-clip-path svg :id "text"))
+	 (steps 100))
+    (setq font-size (* (/ (float image-width) 680)
+		       45))
+    (clear-image-cache)
+    (svg-embed svg file (mailcap-file-name-to-mime-type file) nil
+	       :width image-width
+	       :height image-height)
+    (svg-text clip (format "%s" text)
+	      :font-size font-size
+	      :font-weight "bold"
+	      :font-family "Futura"
+	      :y (+ font-size 10)
+	      :x (+ 10 (/ font-size 5)))
+    (dotimes (i steps)
+      (let ((step (/ (float image-width) steps)))
+	(svg-rectangle svg (* i step) 0
+		       step image-height
+		       :clip-path "url(#text)"
+		       :fill (elt colours (mod i (length colours))))))
     svg))
 
 (defun svg-opacity-gradient (svg id type stops)
@@ -513,6 +556,7 @@ pairs."
 
 (defun posters-change-image-director (string color)
   (interactive "sString: \nsColor: ")
+  (setq string (upcase string))
   (if (not (looking-at ".*src=\"\\([^\"]+\\)\""))
       (error "Nothing under point")
     (let* ((old (substring-no-properties (match-string 1)))
