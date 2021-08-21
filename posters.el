@@ -63,6 +63,23 @@ ID is the imdb movie ID, and DATE can be any string."
 (defun posters-make-from-file-director (file string &optional color)
   (posters--make-and-save #'posters-make-svg-director file string color))
 
+(defun posters-change-image-qc (string)
+  (interactive "sString: ")
+  (setq string (upcase string))
+  (if (not (looking-at ".*src=\"\\([^\"]+\\)\""))
+      (error "Nothing under point")
+    (let* ((old (substring-no-properties (match-string 1)))
+	   (new (posters-make-from-file-qc old string))
+	   (edges (window-inside-pixel-edges
+		   (get-buffer-window (current-buffer)))))
+      (delete-region (line-beginning-position) (line-end-position))
+      (insert-image
+       (create-image
+	new nil nil
+	:max-width (truncate (* 0.9 (- (nth 2 edges) (nth 0 edges))))
+	:max-height (truncate (* 0.5 (- (nth 3 edges) (nth 1 edges)))))
+       (format "<img src=%S>" new)))))
+
 (defun posters-make-from-file-qc (file string &optional color)
   (posters--make-and-save #'posters-make-svg-qc file string color))
 
@@ -169,7 +186,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :y (+ font-size 10)
 	      :x (+ 10 (/ font-size 5)))
     (dotimes (i 10)
-      (let ((step (/ (float font-size) 8.1)))
+      (let ((step (/ (float font-size) 8.0)))
 	(svg-rectangle svg 0 (+ (* i step) (+ 18 (/ font-size 5)))
 		       image-width step
 		       :clip-path "url(#text)"
