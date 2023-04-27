@@ -1,4 +1,4 @@
-;;; posters.el --- querying the posters movie database
+;;; posters.el --- querying the posters movie database  -*- lexical-binding: t -*-
 ;; Copyright (C) 2017 Lars Magne Ingebrigtsen
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -162,7 +162,7 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :x (+ 10 (/ font-size 5)))
     svg))
 
-(defun posters-make-svg-qc (file text &optional color)
+(defun posters-make-svg-qc (file text)
   (let* ((img (create-image file nil nil))
 	 (size (image-size img t))
 	 (image-height 900)
@@ -185,10 +185,10 @@ ID is the imdb movie ID, and DATE can be any string."
 	      :font-family "Futura"
 	      :y (+ font-size 10)
 	      :x (+ 10 (/ font-size 5)))
-    (dotimes (i 10)
-      (let ((step (/ (float font-size) 8.0)))
-	(svg-rectangle svg 0 (+ (* i step) (+ 18 (/ font-size 5)))
-		       image-width step
+    (dotimes (i 50)
+      (let ((step (/ image-width 20.0)))
+	(svg-rectangle svg (+ (* i step) (+ 18 (/ font-size 5))) 0
+		       step image-width
 		       :clip-path "url(#text)"
 		       :fill (elt colours (mod i (length colours))))))
     svg))
@@ -215,11 +215,33 @@ pairs."
 			 (stop-opacity . ,(cdr stop)))))
      stops))))
 
+(defun posters-gif-with-big (text color match)
+  (interactive "sString: \nsColor: \nsMatching files (regexp): ")
+  (meme-gif default-directory
+	    match
+	    (let ((text-size nil))
+	      (lambda (svg width height)
+		(unless text-size
+		  (setq text-size
+			(posters-find-font-size-for-width
+			 text width)))
+		(svg-text svg (format "%s" text)
+			  :font-size (car text-size)
+			  :font-weight "bold"
+			  :stroke (or color "black")
+			  :fill (or color "black")
+			  :stroke-width 0
+			  :font-family "Futura"
+			  :y (+ (/ height 2)
+				;; -30
+				(/ (cadr text-size) 2))
+			  :x (- (1+ (caddr text-size))))))))
+
 (defun posters-find-font-size-for-width (text image-width
 					      &optional start end step)
+  "Returns a list of FONT-SIZE, HEIGHT, and negative X-OFFSET."
   (setq step (or step 100))
   (cl-loop with prev-height = 10
-	   and prev-font-size = (or start 100)
 	   for font-size from (or start 100) upto (or end 1200) by step
 	   do (let* ((svg (svg-create (+ image-width 100)
 				      (* image-width 2))))
@@ -266,11 +288,10 @@ pairs."
 				   (and (looking-at "[+]\\([0-9]+\\)")
 					(string-to-number
 					 (match-string 1))))))))
-		      (setq prev-height (string-to-number (cadr size))
-			    prev-font-size font-size)))))))
+		      (setq prev-height (string-to-number (cadr size)))))))))
 
 (defun posters-make-svg-big (file text &optional color)
-  (let* ((img (create-image file nil nil))
+  (let* ((img (create-image file nil nil :scale 1))
 	 (size (image-size img t))
 	 (image-height 600)
 	 (image-width (truncate (* (/ (* (car size) 1.0) (cdr size))
@@ -294,7 +315,7 @@ pairs."
 	      :y (+ (/ image-height 2)
 		    ;; -30
 		    (/ (cadr text-size) 2))
-	      :x (max 0 (- (1+ (caddr text-size)))))
+	      :x (- (1+ (caddr text-size))))
     (when nil
       (svg-text svg (format "%s" "#98")
 		:font-size (/ image-height 10)
@@ -332,8 +353,8 @@ pairs."
 		(not (consp image))
 		(not (eq (car image) 'image)))
 	(error "No image under point"))
-      (let* ((data (getf (cdr image) :data))
-	     (file (getf (cdr image) :file))
+      (let* ((data (cl-getf (cdr image) :data))
+	     (file (cl-getf (cdr image) :file))
 	     (inhibit-read-only t))
 	(when data
 	  (with-temp-buffer
@@ -448,7 +469,7 @@ pairs."
 	(cl-incf y (min 300 (/ 1000 (length texts))))))
     svg))
 
-(defun posters-make-from-file-bistro (file string &optional color)
+(defun posters-make-from-file-bistro (file string)
   (let ((svg (posters-make-svg-bistro file string))
 	(file (format "/tmp/%s-poster.jpg" (file-name-nondirectory file)))
 	(png (format "/tmp/%s-poster.png" (file-name-nondirectory file))))
