@@ -431,7 +431,7 @@ pairs."
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
 	 (font-size 350)
-	 (y 300))
+	 (y 250))
     (svg-opacity-gradient
      svg 'left-gradient 'linear
      '((0 . "black")
@@ -455,7 +455,7 @@ pairs."
 			      :fill "black"
 			      :font-family "JRS"
 			      :opacity (format "%.2f" (- 1 (/ (* i 1.0) 16)))
-			      :x 50
+			      :x 150
 			      :y y))
 	(svg-text svg text		  
 		  :font-size font-size
@@ -464,7 +464,7 @@ pairs."
 		  :stroke-width "1"
 		  :fill "white"
 		  :font-family "JRS"
-		  :x 50
+		  :x 160
 		  :y y)
 	(cl-incf y (min 300 (/ 1000 (length texts))))))
     svg))
