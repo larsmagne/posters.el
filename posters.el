@@ -142,7 +142,8 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (size (image-size img t))
 	 (image-height 900)
 	 (font-size 100)
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (image-width
+	  (truncate (* (/ (* (car size) 1.0) (cdr size)) image-height)))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
     (setq font-size (* (/ (float image-width) 680)
