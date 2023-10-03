@@ -118,7 +118,8 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (size (image-size img t))
 	 (image-height 600)
 	 (font-size 100)
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (image-width
+	  (round (* (/ (* (car size) 1.0) (cdr size)) image-height)))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink")))
     (clear-image-cache)
@@ -168,7 +169,8 @@ ID is the imdb movie ID, and DATE can be any string."
 	 (size (image-size img t))
 	 (image-height 900)
 	 (font-size 100)
-	 (image-width (* (/ (* (car size) 1.0) (cdr size)) image-height))
+	 (image-width
+	  (round (* (/ (* (car size) 1.0) (cdr size)) image-height)))
 	 (svg (svg-create image-width image-height
 			  :xmlns:xlink "http://www.w3.org/1999/xlink"))
 	 (colours '("#e40303" "#ff8c00" "#ffed00"
@@ -533,8 +535,9 @@ pairs."
 	 (image-size (image-size img t))
 	 (image-height (* (/ (* (cdr image-size) 1.0) (car image-size))
 			  food-width))
-	 (image-width (* (/ (* (car image-size) 1.0) (cdr image-size))
-			 image-height))
+	 (image-width (round
+		       (* (/ (* (car image-size) 1.0) (cdr image-size))
+			  image-height)))
 	 (font-size 45)
 	 (colors '("#345d98" "#d02d1c" "#eed023"
 		   "#99b1c9" "#b0dabe" "#3a7359"))
