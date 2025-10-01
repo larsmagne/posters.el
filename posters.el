@@ -98,7 +98,9 @@ ID is the imdb movie ID, and DATE can be any string."
       (write-region (point-min) (point-max) "/tmp/poster.svg"))
     (call-process "rsvg-convert"
 		  nil (get-buffer-create "*convert*") nil
-		  "/tmp/poster.svg" "-o" file)
+		  "/tmp/poster.svg" "-o" "/tmp/svg.png")
+    (call-process "convert" nil nil nil
+		  "/tmp/svg.png" file)
     file))
 
 (defun posters-get-image (id)
